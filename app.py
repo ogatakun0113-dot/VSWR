@@ -2,6 +2,8 @@ import streamlit as st
 import math
 
 # --- 見た目の設定（スマホ対応） ---
+st.set_page_config(page_title="無線設備計算アシスト", layout="centered")
+
 st.markdown("""
     <style>
     .main {
@@ -27,23 +29,23 @@ st.markdown("""
 
 st.title("📡 無線設備計算アシスト")
 
-# --- タブ分け（波長・ケーブル長計算を前面に） ---
+# --- タブ分け ---
 tab1, tab2 = st.tabs(["波長・ケーブル長計算", "VSWR計算"])
 
 # --- 1. 波長・ケーブル長計算タブ ---
 with tab1:
     st.subheader("📏 波長(λ)および同軸長計算")
     
-    # 周波数入力
-    freq = st.number_input("使用周波数 (MHz)", value=71.790, format="%.3f")[cite: 1]
-    # 短縮率入力
-    velocity_factor = st.number_input("同軸短縮率 (例: 10D-2Vは0.67)", value=0.67, format="%.2f")[cite: 1]
+    # 周波数入力[cite: 1]
+    freq = st.number_input("使用周波数 (MHz)", value=71.790, format="%.3f")
+    # 短縮率入力[cite: 1]
+    velocity_factor = st.number_input("同軸短縮率 (例: 10D-2Vは0.67)", value=0.67, format="%.2f")
 
     if freq > 0:
-        # 自由空間波長 λ = 300 / f
-        lambda_free = 300 / freq[cite: 1]
-        # 同軸内波長 = λ * 短縮率
-        lambda_coax = lambda_free * velocity_factor[cite: 1]
+        # 自由空間波長 λ = 300 / f[cite: 1]
+        lambda_free = 300 / freq
+        # 同軸内波長 = λ * 短縮率[cite: 1]
+        lambda_coax = lambda_free * velocity_factor
 
         st.markdown("---")
         st.write("### 波長計算結果（自由空間 / 同軸内）")
@@ -51,16 +53,16 @@ with tab1:
         c1, c2, c3 = st.columns(3)
         with c1:
             st.write("**1λ**")
-            st.write(f"{lambda_free:.3f} m")[cite: 1]
-            st.write(f"({lambda_coax:.3f} m)")[cite: 1]
+            st.write(f"{lambda_free:.3f} m")
+            st.write(f"({lambda_coax:.3f} m)")
         with c2:
             st.write("**1/2λ**")
-            st.write(f"{lambda_free/2:.3f} m")[cite: 1]
-            st.write(f"({lambda_coax/2:.3f} m)")[cite: 1]
+            st.write(f"{lambda_free/2:.3f} m")
+            st.write(f"({lambda_coax/2:.3f} m)")
         with c3:
             st.write("**1/4λ**")
-            st.write(f"{lambda_free/4:.3f} m")[cite: 1]
-            st.write(f"({lambda_coax/4:.3f} m)")[cite: 1]
+            st.write(f"{lambda_free/4:.3f} m")
+            st.write(f"({lambda_coax/4:.3f} m)")
 
         st.markdown("---")
         st.write("### 同軸ケーブル推奨長")
@@ -99,4 +101,4 @@ with tab2:
         st.metric("VSWR", f"{vswr:.3f}")[cite: 1]
 
 st.markdown("---")
-st.caption("無線設備計算ツール - エクセル資料 に基づく計算")
+st.caption("無線設備計算ツール - エクセル資料[cite: 1] に基づく計算")
