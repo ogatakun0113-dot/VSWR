@@ -2,7 +2,7 @@ import streamlit as st
 import math
 
 # --- ページ設定（スマホ・PC両対応） ---
-st.set_page_config(page_title="無線設備計算アシスト", layout="centered")
+st.set_page_config(page_title="VSWR計算アシスト", layout="centered")
 
 # --- 見た目のカスタマイズ（CSS） ---
 st.markdown("""
@@ -38,7 +38,7 @@ st.markdown("""
 # 右上にクレジットを表示
 st.markdown('<p class="credit">開発/制作：緒方</p>', unsafe_allow_html=True)
 
-st.title("📡 無線設備計算アシスト")
+st.title("📡 ＶＳＷＲ計算アシスト")
 
 # --- タブ分け（VSWR計算を左側に配置） ---
 tab1, tab2 = st.tabs(["VSWR計算", "波長・ケーブル長計算"])
