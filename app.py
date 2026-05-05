@@ -38,7 +38,7 @@ st.markdown("""
 # 右上にクレジットを表示
 st.markdown('<p class="credit">開発/制作：緒方</p>', unsafe_allow_html=True)
 
-st.title("📡 ＶＳＷＲ計算")
+st.title("📡 VSWR計算")
 
 # --- タブ分け（VSWR計算を左側に配置） ---
 tab1, tab2 = st.tabs(["VSWR計算", "波長・ケーブル長計算"])
