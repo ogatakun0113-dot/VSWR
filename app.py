@@ -73,6 +73,13 @@ with tab1:
         """, unsafe_allow_html=True)
         
         st.metric("VSWR", f"{vswr:.3f}")
+
+        # --- 【追加】計算式の表示（VSWR値とボタンの間） ---
+        st.markdown("---")
+        st.write("### 📝 VSWR計算式")
+        st.latex(r"VSWR = \frac{1 + \rho}{1 - \rho} = \frac{1 + \sqrt{P_r / P_f}}{1 - \sqrt{P_r / P_f}}")
+        st.caption("※ $\rho$（反射係数）= $\sqrt{P_r / P_f}$")
+
     else:
         st.warning("Pfには0より大きい値を入力してください。")
 
