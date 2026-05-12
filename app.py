@@ -15,6 +15,18 @@ st.markdown("""
         font-weight: bold !important;
         color: #2E86C1;
     }
+    /* Pf入力枠（薄赤） */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(1) input {
+        background-color: #fdf2f2 !important;
+        border-left: 5px solid #ff4b4b !important;
+        font-weight: bold !important;
+    }
+    /* Pr入力枠（薄青） */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(2) input {
+        background-color: #f2f2fd !important;
+        border-left: 5px solid #007bff !important;
+        font-weight: bold !important;
+    }
     .result-box {
         background-color: #f0f2f6;
         padding: 15px;
@@ -25,7 +37,6 @@ st.markdown("""
     [data-testid="stMetricValue"] {
         font-size: 32px !important;
     }
-    /* クレジット表示用のCSS */
     .credit {
         text-align: right;
         font-size: 14px;
@@ -40,7 +51,7 @@ st.markdown('<p class="credit">開発/制作：緒方</p>', unsafe_allow_html=Tr
 
 st.title("📡 VSWR計算")
 
-# --- タブ分け（VSWR計算を左側に配置） ---
+# --- タブ分け ---
 tab1, tab2 = st.tabs(["VSWR計算", "波長・ケーブル長計算"])
 
 # --- 1. VSWR計算タブ ---
@@ -60,7 +71,7 @@ with tab1:
         rho = math.sqrt(pr / pf)
         vswr = (1 + rho) / (1 - rho) if rho < 1 else float('inf')
         
-        # 判定（1.5以下を「良」とする）
+        # 判定
         is_good = vswr < 1.5
         status = "良" if is_good else "要調整"
         color = "green" if is_good else "red"
@@ -74,11 +85,21 @@ with tab1:
         
         st.metric("VSWR", f"{vswr:.3f}")
 
-        # --- 【追加】計算式の表示（VSWR値とボタンの間） ---
+        # --- 計算式の表示と凡例 ---
         st.markdown("---")
         st.write("### 📝 VSWR計算式")
-        st.latex(r"VSWR = \frac{1 + \rho}{1 - \rho} = \frac{1 + \sqrt{P_r / P_f}}{1 - \sqrt{P_r / P_f}}")
-        st.caption("※ $\rho$（反射係数）= $\sqrt{P_r / P_f}$")
+        st.latex(r"VSWR = \frac{1 + \sqrt{P_r / P_f}}{1 - \sqrt{P_r / P_f}}")
+        
+        # 指示の凡例表示
+        st.markdown(f"""
+        <div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+            <p style="margin: 0; font-size: 16px;"><strong>【凡例】</strong></p>
+            <ul style="margin: 5px 0 0 0; font-size: 15px;">
+                <li><strong><span style="color: #ff4b4b;">P<sub>f</sub></span></strong> ：前進電力 (Forward Power)</li>
+                <li><strong><span style="color: #007bff;">P<sub>r</sub></span></strong> ：反射電力 (Reflected Power)</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
     else:
         st.warning("Pfには0より大きい値を入力してください。")
@@ -87,19 +108,15 @@ with tab1:
 with tab2:
     st.subheader("📏 波長(λ)および同軸長計算")
     
-    # 周波数入力
     freq = st.number_input("使用周波数 (MHz)", value=71.790, format="%.3f")
-    # 短縮率入力（10D-2V等の特性）
     velocity_factor = st.number_input("同軸短縮率 (例: 10D-2Vは0.67)", value=0.67, format="%.2f")
 
     if freq > 0:
-        # 自由空間波長 λ = 300 / f
         lambda_free = 300 / freq
-        # 同軸内波長 = λ * 短縮率
         lambda_coax = lambda_free * velocity_factor
 
         st.markdown("---")
-        st.write("### 波長計算結果（自由空間 / 同軸内）")
+        st.write("### 波長計算結果")
         
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -117,28 +134,20 @@ with tab2:
 
         st.markdown("---")
         st.write("### 同軸ケーブル推奨長")
-        st.info("反射波を抑えるため、同軸内1/2λの整数倍が望ましいです。")
-        
-        # 整数倍の計算
         n = st.number_input("倍数を選択 (n倍)", value=12, step=1)
         recommended_len = (lambda_coax / 2) * n
-        
         st.success(f"推奨ケーブル長 ({n}倍): **{recommended_len:.3f} m**")
 
-# --- 画面下部中央に「戻る」ボタンを配置 ---
-st.markdown("---")  # 区切り線
+# --- 戻るボタン ---
+st.markdown("---")
 col1, col2, col3 = st.columns([1, 1, 1])
+with col2:
+    st.link_button("🏠\n\n戻る", "https://7fjndw39dicdzckugyepb2.streamlit.app/", use_container_width=True)
 
-with col2:  # 中央の列を使用
-    # 水色のアイコン（🏠）と「戻る」を表示するボタン
-    if st.link_button("🏠\n\n戻る", "https://7fjndw39dicdzckugyepb2.streamlit.app/", use_container_width=True):
-        pass
-
-# ボタンの色（水色）を調整するカスタム設定
 st.markdown("""
     <style>
     div.stLinkButton > a {
-        background-color: #00BFFF !important; /* 水色（DeepSkyBlue） */
+        background-color: #00BFFF !important;
         color: white !important;
         border-radius: 10px;
         text-align: center;
