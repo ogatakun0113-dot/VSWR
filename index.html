@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VSWR計算</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', 'Noto Sans JP', sans-serif;
+      background: #f5f5f5;
+      padding: 16px;
+      max-width: 700px;
+      margin: 0 auto;
+      color: #333;
+    }
+    h1 { font-size: 24px; margin-bottom: 12px; }
+    h3 { font-size: 17px; margin-bottom: 12px; }
+    .credit { text-align: right; font-size: 14px; color: #666; margin-bottom: 4px; }
+    .tabs { display: flex; border-bottom: 2px solid #2E86C1; margin-bottom: 20px; gap: 4px; }
+    .tab-btn {
+      padding: 10px 16px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 14px;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      color: #555;
+    }
+    .tab-btn.active {
+      border-bottom-color: #2E86C1;
+      color: #2E86C1;
+      font-weight: bold;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .row { display: flex; gap: 12px; margin-bottom: 16px; }
+    .col { flex: 1; }
+    label { font-size: 16px; font-weight: bold; color: #2E86C1; display: block; margin-bottom: 4px; }
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    .input-pf input { background: #fdf2f2; border-left: 5px solid #ff4b4b; }
+    .input-pr input { background: #f2f2fd; border-left: 5px solid #007bff; }
+    input.full { margin-bottom: 12px; }
+    .result-box {
+      background: #f0f2f6;
+      padding: 16px;
+      border-radius: 10px;
+      border-left: 5px solid #2E86C1;
+      margin-bottom: 16px;
+    }
+    .result-box p { margin-bottom: 4px; font-size: 14px; color: #555; }
+    .result-box h2 { font-size: 22px; margin-top: 4px; }
+    .metric { font-size: 32px; font-weight: bold; margin-bottom: 16px; color: #222; }
+    .divider { border: none; border-top: 1px solid #ddd; margin: 16px 0; }
+    .formula-wrap {
+      text-align: center;
+      font-size: 20px;
+      padding: 16px;
+      font-family: 'Times New Roman', serif;
+    }
+    .frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      margin: 0 4px;
+      font-size: 18px;
+    }
+    .frac .num { border-bottom: 2px solid #333; padding: 2px 10px; }
+    .frac .den { padding: 2px 10px; }
+    .legend-box {
+      background: #f8f9fa;
+      padding: 10px 14px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+    }
+    .legend-box ul { margin: 6px 0 0 18px; }
+    .legend-box li { margin-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: center; font-size: 15px; }
+    th { background: #2E86C1; color: white; }
+    tr:nth-child(even) { background: #f0f2f6; }
+    .success-box {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+    .warning { color: #856404; background: #fff3cd; padding: 10px; border-radius: 6px; margin-bottom: 12px; }
+    .back-btn {
+      display: block;
+      width: 140px;
+      margin: 0 auto;
+      padding: 12px;
+      text-align: center;
+      background: #00BFFF;
+      color: white;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .back-btn:hover { opacity: 0.85; }
+    @media (max-width: 480px) { .row { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <p class="credit">開発/制作：緒方</p>
+  <h1>📡 VSWR計算</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="vswr" onclick="switchTab(this)">VSWR計算</button>
+    <button class="tab-btn" data-tab="wave" onclick="switchTab(this)">波長・ケーブル長計算</button>
+  </div>
+
+  <!-- Tab 1: VSWR -->
+  <div id="tab-vswr" class="tab-content active">
+    <h3>📊 VSWR測定・判定</h3>
+    <div class="row">
+      <div class="col input-pf">
+        <label>前進電力 Pf (W)</label>
+        <input type="number" id="pf" value="3.96" step="0.01" min="0.01" oninput="calcVSWR()">
+      </div>
+      <div class="col input-pr">
+        <label>反射電力 Pr (W)</label>
+        <input type="number" id="pr" value="0.03" step="0.01" min="0" oninput="calcVSWR()">
+      </div>
+    </div>
+
+    <div id="vswr-result"></div>
+
+    <hr class="divider">
+    <h3>📝 VSWR計算式</h3>
+    <div class="formula-wrap">
+      VSWR =
+      <span class="frac">
+        <span class="num">1 + &radic;(P<sub>r</sub> / P<sub>f</sub>)</span>
+        <span class="den">1 &minus; &radic;(P<sub>r</sub> / P<sub>f</sub>)</span>
+      </span>
+    </div>
+    <div class="legend-box">
+      <p><strong>【凡例】</strong></p>
+      <ul>
+        <li><strong><span style="color:#ff4b4b;">P<sub>f</sub></span></strong>：前進電力 (Forward Power)</li>
+        <li><strong><span style="color:#007bff;">P<sub>r</sub></span></strong>：反射電力 (Reflected Power)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Tab 2: Wavelength -->
+  <div id="tab-wave" class="tab-content">
+    <h3>📏 波長(λ)および同軸長計算</h3>
+    <label>使用周波数 (MHz)</label>
+    <input type="number" id="freq" value="71.790" step="0.001" min="0.001" class="full" oninput="calcWave()">
+    <label>同軸短縮率 (例: 10D-2Vは0.67)</label>
+    <input type="number" id="vf" value="0.67" step="0.01" min="0.01" max="1" class="full" oninput="calcWave()">
+
+    <hr class="divider">
+    <h3>波長計算結果</h3>
+    <table>
+      <thead>
+        <tr><th></th><th>自由空間</th><th>同軸内（短縮後）</th></tr>
+      </thead>
+      <tbody id="wave-body"></tbody>
+    </table>
+
+    <hr class="divider">
+    <h3>同軸ケーブル推奨長</h3>
+    <label>倍数を選択 (n倍)</label>
+    <input type="number" id="nmult" value="12" step="1" min="1" class="full" oninput="calcWave()">
+    <div class="success-box" id="wave-recommend"></div>
+  </div>
+
+  <hr class="divider">
+  <a class="back-btn" href="https://7fjndw39dicdzckugyepb2.streamlit.app/">🏠<br><br>戻る</a>
+
+  <script>
+    function switchTab(btn) {
+      const name = btn.dataset.tab;
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function calcVSWR() {
+      const pf = parseFloat(document.getElementById('pf').value);
+      const pr = parseFloat(document.getElementById('pr').value);
+      const el = document.getElementById('vswr-result');
+
+      if (isNaN(pf) || pf <= 0) {
+        el.innerHTML = '<p class="warning">Pfには0より大きい値を入力してください。</p>';
+        return;
+      }
+      if (isNaN(pr) || pr < 0) {
+        el.innerHTML = '<p class="warning">Prには0以上の値を入力してください。</p>';
+        return;
+      }
+
+      const rho = Math.sqrt(pr / pf);
+      const vswr = rho < 1 ? (1 + rho) / (1 - rho) : Infinity;
+      const isGood = vswr < 1.5;
+      const status = isGood ? '良' : '要調整';
+      const color = isGood ? 'green' : 'red';
+      const vswrText = vswr === Infinity ? '∞' : vswr.toFixed(3);
+
+      el.innerHTML = `
+        <div class="result-box">
+          <p>計算結果</p>
+          <h2 style="color:${color}">判定：${status}</h2>
+        </div>
+        <div class="metric">VSWR: ${vswrText}</div>
+      `;
+    }
+
+    function calcWave() {
+      const freq = parseFloat(document.getElementById('freq').value);
+      const vf = parseFloat(document.getElementById('vf').value);
+      const n = parseInt(document.getElementById('nmult').value) || 1;
+
+      if (isNaN(freq) || freq <= 0 || isNaN(vf) || vf <= 0) return;
+
+      const lFree = 300 / freq;
+      const lCoax = lFree * vf;
+
+      document.getElementById('wave-body').innerHTML = [
+        { label: '1λ', free: lFree, coax: lCoax },
+        { label: '1/2λ', free: lFree / 2, coax: lCoax / 2 },
+        { label: '1/4λ', free: lFree / 4, coax: lCoax / 4 },
+      ].map(r => `
+        <tr><td><strong>${r.label}</strong></td><td>${r.free.toFixed(3)} m</td><td>${r.coax.toFixed(3)} m</td></tr>
+      `).join('');
+
+      const rec = (lCoax / 2) * n;
+      document.getElementById('wave-recommend').textContent =
+        `推奨ケーブル長 (${n}倍): ${rec.toFixed(3)} m`;
+    }
+
+    calcVSWR();
+    calcWave();
+  </script>
+</body>
+</html>
